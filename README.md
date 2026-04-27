@@ -140,14 +140,11 @@ Ensure:
 * json2.js
 * fetch_data.jsx
 
-<<<<<<< HEAD
 Include at top of script:
 
 #include "json2.js"
 #include "http.jsx"
 
-=======
->>>>>>> 147cf7c394abd15a2adce3c46e011b1ad91a8bd1
 ---
 
 ### 7. Run in InDesign
