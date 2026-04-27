@@ -115,10 +115,6 @@ Ensure these files exist:
 * jsx/fetch_data.jsx
 * jsx/json2.js
 
-Inside fetch_data.jsx, include:
-
-#include "json2.js"
-
 ---
 
 ### 7. Run Script in InDesign
