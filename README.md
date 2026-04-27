@@ -1,39 +1,71 @@
-# InDesign JSX ↔ Node.js ↔ MySQL Starter Pack
+# InDesign Data-Driven Automation (JSX + Node.js + MySQL)
 
 ## Overview
 
-This project demonstrates a working pipeline to fetch database data into Adobe InDesign using ExtendScript (JSX).
+This project is a lightweight, open-source foundation for **data-driven publishing in Adobe InDesign**.
 
-Since InDesign does not support direct database connections, this solution uses a Node.js API as a bridge.
+It connects a MySQL database to InDesign using a Node.js API and a reusable JSX HTTP client, enabling automated layout generation directly inside InDesign.
 
 Flow:
-MySQL → Node.js API → InDesign JSX → Document Layout
+MySQL → Node.js API → JSX HTTP Client → InDesign Document
+
+---
+
+## Why This Exists
+
+Adobe InDesign ExtendScript does not support:
+
+* Direct database connections
+* Native HTTP/HTTPS requests
+* JSON parsing (without polyfill)
+
+This project solves those limitations by introducing:
+
+* A Node.js middleware layer
+* A reusable HTTP client (`http.jsx`)
+* JSON parsing support (`json2.js`)
 
 ---
 
 ## Features
 
-* Fetch data from MySQL into InDesign
-* Lightweight Node.js REST API
-* ExtendScript (JSX) HTTP client using Socket
+* Fetch live data from MySQL into InDesign
+* Reusable HTTP client for ExtendScript (`http.jsx`)
+* Clean separation between API and layout logic
+* Automatic text frame generation
 * JSON parsing support for ExtendScript
-* Auto-create text frames in InDesign
+* Minimal, extensible architecture
+
+---
+
+## Architecture
+
+JSX (InDesign)
+↓
+http.jsx (Socket-based HTTP client)
+↓
+Node.js API (Express)
+↓
+MySQL Database
 
 ---
 
 ## Project Structure
 
-indesign-db-bridge/
+indd-db-eg/
 
 * server/
 
   * server.js
   * db.js
   * package.json
+
 * jsx/
 
   * fetch_data.jsx
+  * http.jsx
   * json2.js
+
 * data/
 
   * sample.sql
@@ -42,21 +74,19 @@ indesign-db-bridge/
 
 ## Requirements
 
-* Adobe InDesign (with ExtendScript support)
-* Node.js (v14+ recommended)
+* Adobe InDesign (ExtendScript enabled)
+* Node.js (v14+)
 * MySQL Server
-* Basic knowledge of JSX scripting
 
 ---
 
 ## Setup Instructions
 
-### 1. Setup MySQL Database
+### 1. Setup Database
 
-Import the sample SQL file:
+Import:
 
-* Open MySQL client
-* Run data/sample.sql
+data/sample.sql
 
 This creates:
 
@@ -65,13 +95,13 @@ This creates:
 
 ---
 
-### 2. Configure Database Connection
+### 2. Configure DB Connection
 
 Edit:
 
 server/db.js
 
-Update credentials:
+Update:
 
 * host
 * user
@@ -79,102 +109,151 @@ Update credentials:
 
 ---
 
-### 3. Install Node Dependencies
+### 3. Install Dependencies
 
 cd server
 npm install
 
 ---
 
-### 4. Start API Server
+### 4. Start API
 
 node server.js
 
-You should see:
-
+Expected:
 Server running: http://127.0.0.1:3000
 
 ---
 
 ### 5. Test API
 
-Open in browser:
-
 http://127.0.0.1:3000/users
-or
 http://127.0.0.1:3000/users-clean
-
-You should get JSON data.
 
 ---
 
 ### 6. Setup InDesign Script
 
-Ensure these files exist:
+Ensure:
 
-* jsx/fetch_data.jsx
-* jsx/json2.js
+* http.jsx
+* json2.js
+* fetch_data.jsx
 
-Inside fetch_data.jsx, include:
+Include at top of script:
 
 #include "json2.js"
+#include "http.jsx"
 
 ---
 
-### 7. Run Script in InDesign
+### 7. Run in InDesign
 
-* Open Adobe InDesign
-* Open Scripts Panel
+* Open InDesign
+* Open Scripts panel
 * Run fetch_data.jsx
 
 Result:
 
-* Text frames will be created
-* Each record from DB is placed into the document
+* Data from MySQL is inserted into the document
+* Text frames are created automatically
+
+---
+
+## http.jsx (Core Module)
+
+This project introduces a reusable HTTP client for ExtendScript.
+
+Example:
+
+var data = http.get("127.0.0.1", 3000, "/users");
+
+Features:
+
+* Socket-based HTTP requests
+* Automatic response parsing
+* JSON extraction and cleanup
+* Null character handling
+* Error handling via exceptions
 
 ---
 
 ## How It Works
 
-1. JSX opens a socket connection to Node.js
-2. Sends HTTP GET request
-3. Receives raw HTTP response
-4. Extracts JSON from response
-5. Cleans invalid characters
-6. Parses JSON using json2.js
-7. Writes data into InDesign document
+1. JSX sends HTTP request via Socket
+2. Node.js API queries MySQL
+3. API returns JSON response
+4. http.jsx extracts and cleans response
+5. json2.js parses JSON
+6. JSX writes content into InDesign
 
 ---
 
-## Key Limitations
+## Limitations
 
-* ExtendScript does not support:
-
-  * Native HTTP/HTTPS
-  * JSON.parse (without polyfill)
-  * Modern JavaScript features
-* Socket communication is:
-
-  * Synchronous
-  * Sensitive to formatting
-  * Requires manual parsing
+* ExtendScript is ES3-based (no modern JS features)
+* No native HTTPS support
+* Socket communication is synchronous
+* JSON parsing uses eval (via json2.js)
 
 ---
 
-## Recommended Improvements
+## Troubleshooting
 
-* Add reusable HTTP client module for JSX
-* Implement POST support (for API integrations)
-* Add logging instead of alert()
-* Build template-based layout system
-* Add image placement support from URLs
-* Introduce config file for endpoints
+### HTTP 400 Error
+
+* Ensure correct request format in http.jsx
+* Verify endpoint path
 
 ---
 
-## Production Architecture
+### JSON Parse Error
 
-Recommended approach for scalability:
+* Response may contain hidden null characters
+* http.jsx already handles cleanup
+
+---
+
+### JSON Undefined
+
+* Ensure json2.js is included
+
+---
+
+### No Data in InDesign
+
+* Verify API response
+* Check MySQL data
+* Confirm script execution
+
+---
+
+## Roadmap
+
+Planned improvements:
+
+* POST support in http.jsx
+* Config-based API setup
+* JSON → InDesign style mapping
+* Table generation from data
+* Image placement via URLs
+* Pagination automation
+* Logging system (replace alerts)
+* Template-driven layout engine
+
+---
+
+## Use Cases
+
+* Catalog automation
+* Newsletter production
+* Report generation
+* Data-driven publishing workflows
+* Internal dashboards exported via InDesign
+
+---
+
+## Recommended Architecture (Production)
 
 JSX → Node.js → Database / APIs / AI services
 
@@ -182,28 +261,35 @@ Avoid calling external APIs directly from JSX.
 
 ---
 
-## Future Enhancements
+## Contributing
 
-* JSON → InDesign style mapping
-* Table generation from data
-* Image auto-placement
-* Pagination automation
-* Integration with PDF workflows
-* ChatGPT-based content generation
+Contributions are welcome:
+
+* Improve HTTP module
+* Add layout mapping features
+* Extend API capabilities
+* Improve documentation
 
 ---
 
-## Notes
+## License
 
-* JSON parsing uses eval (via json2.js)
-* Safe for controlled/local APIs
-* Not recommended for untrusted external data
+Open-source (add your license here)
 
 ---
 
 ## Author
 
-Shivaram Allva
-shiv.allva@yahoo.com
+Created by Shivaram Allva
 
-InDesign Automation workflows.
+---
+
+## Final Note
+
+This project is a foundation — not just a demo.
+
+With extensions, it can evolve into:
+
+* A lightweight EasyCatalog alternative
+* A full data-driven publishing engine
+* A scalable InDesign automation platform
